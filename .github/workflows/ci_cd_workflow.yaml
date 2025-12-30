@@ -29,14 +29,9 @@ jobs:
       - name: Setup uv
         uses: astral-sh/setup-uv@v5
 
-      - name: Install dependencies
-        run: uv sync --group integration
-
-      - name: Run Ruff format check
-        run: uv run ruff format --check
-
-      - name: Run Ruff check
-        run: uv run ruff check .
+      # we need deployment dependencies to download and convert models for testing
+      - name: Install Deployment Dependencies
+        run: uv sync --group deployment
 
       - name: Download Model Artifacts
         run: |
@@ -48,6 +43,15 @@ jobs:
           export PYTHONPATH=$PYTHONPATH:$(pwd)/src
           uv run src/scripts/export_classifier_to_onnx.py
           uv run src/scripts/export_sentence_transformer_to_onnx.py
+
+      - name: Install dependencies
+        run: uv sync --group integration
+
+      - name: Run Ruff format check
+        run: uv run ruff format --check
+
+      - name: Run Ruff check
+        run: uv run ruff check .
 
       - name: Run Pytest
         run: uv run pytest tests
