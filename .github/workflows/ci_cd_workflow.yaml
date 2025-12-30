@@ -18,6 +18,14 @@ jobs:
       - name: Checkout code repo
         uses: actions/checkout@v4
 
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: ${{ env.AWS_REGION }}
+
       - name: Setup uv
         uses: astral-sh/setup-uv@v5
 
@@ -29,6 +37,17 @@ jobs:
 
       - name: Run Ruff check
         run: uv run ruff check .
+
+      - name: Download Model Artifacts
+        run: |
+          export PYTHONPATH=$PYTHONPATH:$(pwd)/src
+          uv run src/scripts/download_artifacts.py
+
+      - name: Convert Models to ONNX
+        run: |
+          export PYTHONPATH=$PYTHONPATH:$(pwd)/src
+          uv run src/scripts/export_classifier_to_onnx.py
+          uv run src/scripts/export_sentence_transformer_to_onnx.py
 
       - name: Run Pytest
         run: uv run pytest tests
