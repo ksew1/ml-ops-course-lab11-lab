@@ -1,0 +1,32 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+
+Parameters:
+  ImageUri:
+    Type: String
+    Description: ECR Image URI
+  LambdaExecutionRoleArn:
+    Type: String
+    Description: ARN of the IAM role for Lambda
+
+Resources:
+  SentimentFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      PackageType: Image
+      ImageUri: !Ref ImageUri
+      Role: !Ref LambdaExecutionRoleArn
+      MemorySize: 1024
+      Timeout: 30
+      Architectures:
+        - x86_64
+      Events:
+        Api:
+          Type: HttpApi
+          Properties:
+            Path: /predict
+            Method: post
+
+Outputs:
+  ApiUrl:
+    Value: !Sub "https://${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com/predict"
